@@ -701,27 +701,68 @@ public class CraftingManager {
     private BatchPacket packetFor(int protocol) {
         CraftingDataPacket pk = new CraftingDataPacket();
         pk.protocol = protocol;
+        recipeLoop:
         for (Recipe recipe : this.getRecipes(protocol)) {
-            if (recipe instanceof ShapedRecipe) {
-                pk.addShapedRecipe((ShapedRecipe) recipe);
-            } else if (recipe instanceof ShapelessRecipe) {
-                pk.addShapelessRecipe((ShapelessRecipe) recipe);
+            if (recipe instanceof ShapedRecipe shapedRecipe) {
+                for (Item resultItem : shapedRecipe.getAllResults()) {
+                    if (!resultItem.isSupportedOn(protocol)) {
+                        continue recipeLoop;
+                    }
+                }
+                for (Item ingredient : shapedRecipe.getIngredientList()) {
+                    if (!ingredient.isSupportedOn(protocol)) {
+                        continue recipeLoop;
+                    }
+                }
+                pk.addShapedRecipe(shapedRecipe);
+            } else if (recipe instanceof ShapelessRecipe shapelessRecipe) {
+                for (Item resultItem : shapelessRecipe.getAllResults()) {
+                    if (!resultItem.isSupportedOn(protocol)) {
+                        continue recipeLoop;
+                    }
+                }
+                for (Item ingredient : shapelessRecipe.getIngredientList()) {
+                    if (!ingredient.isSupportedOn(protocol)) {
+                        continue recipeLoop;
+                    }
+                }
+                pk.addShapelessRecipe(shapelessRecipe);
             }
         }
         for (SmithingRecipe recipe : this.getSmithingRecipes(protocol).values()) {
+            if (!recipe.getTemplate().isSupportedOn(protocol)
+                    || !recipe.getIngredient().isSupportedOn(protocol)
+                    || !recipe.getEquipment().isSupportedOn(protocol)
+                    || !recipe.getResult().isSupportedOn(protocol)) {
+                continue;
+            }
             pk.addShapelessRecipe(recipe);
         }
         //TODO Fix 1.10.0 - 1.14.0 client crash
         if (protocol < ProtocolInfo.v1_10_0 || protocol > ProtocolInfo.v1_13_0) {
             for (FurnaceRecipe recipe : this.getFurnaceRecipes(protocol).values()) {
+                if (!recipe.getInput().isSupportedOn(protocol)
+                        || !recipe.getResult().isSupportedOn(protocol)) {
+                    continue;
+                }
                 pk.addFurnaceRecipe(recipe);
             }
         }
         if (protocol >= ProtocolInfo.v1_13_0) {
             for (BrewingRecipe recipe : this.getBrewingRecipes(protocol).values()) {
+                if (!recipe.getInput().isSupportedOn(protocol)
+                        || !recipe.getIngredient().isSupportedOn(protocol)
+                        || !recipe.getResult().isSupportedOn(protocol)) {
+                    continue;
+                }
                 pk.addBrewingRecipe(recipe);
             }
             for (ContainerRecipe recipe : this.getContainerRecipes(protocol).values()) {
+                if (!recipe.getInput().isSupportedOn(protocol)
+                        || !recipe.getIngredient().isSupportedOn(protocol)
+                        || !recipe.getResult().isSupportedOn(protocol)) {
+                    continue;
+                }
                 pk.addContainerRecipe(recipe);
             }
             if (protocol >= ProtocolInfo.v1_16_0) {
