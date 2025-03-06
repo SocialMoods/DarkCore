@@ -36,9 +36,6 @@ public class MobEquipmentProcessor extends DataPacketProcessor<MobEquipmentPacke
         if (inv == null) {
             player.getServer().getLogger().debug(player.getName() + " has no open container with window ID " + pk.windowId);
             playerHandle.setFailedMobEquipmentPacket(playerHandle.getFailedMobEquipmentPacket() + 1);
-            if (playerHandle.getFailedMobEquipmentPacket() > MAX_FAILED) {
-                player.close("", "Too many failed packets");
-            }
             return;
         }
 
@@ -47,9 +44,6 @@ public class MobEquipmentProcessor extends DataPacketProcessor<MobEquipmentPacke
         if (!item.equals(pk.item)) {
             player.getServer().getLogger().debug(player.getName() + " tried to equip " + pk.item + " but have " + item + " in target slot");
             playerHandle.setFailedMobEquipmentPacket(playerHandle.getFailedMobEquipmentPacket() + 1);
-            if (playerHandle.getFailedMobEquipmentPacket() > MAX_FAILED) {
-                player.close("", "Too many failed packets");
-            }
             inv.sendContents(player);
             return;
         }
